@@ -14,7 +14,17 @@ TX18 remains **NOT_RUN** for complete real DevTools Network/Storage/offline insp
 
 Delegation requested `gpt-6-luna` / `max`, accepted by the spawn tool; actual backend routing is unconfirmed. Primary integration, source review and acceptance are independent of child reports.
 
-Bilingual validation, public source publication and free Cloudflare deployment are in progress. This record will be updated only after observable release checks succeed.
+Bilingual source and live publication are complete with the manual exceptions listed above. See the final release record below.
 
 ## Bilingual release gate — primary acceptance
-After fixing an English relative-asset checker defect, the primary independently ran all 56 tests (PASS), source check (10 assets/17 JS), preview build (10 files), production build and exact check (14 files), with fail-fast command handling. Both language pages were exercised in real IAB; English Worker A/B output, 320px controls (44px buttons, no overflow), language navigation/reset and desktop1024 layout passed. An earlier 55-test run passed tests but failed the actual source/build checks; that failure was retained and fixed, not counted as a passing release. Production metadata and headers are exact-source checked; real hosting still awaits deployment.
+After fixing an English relative-asset checker defect, the primary independently ran all 56 tests (PASS), source check (10 assets/17 JS), preview build (10 files), production build and exact check (14 files), with fail-fast command handling. Both language pages were exercised in real IAB; English Worker A/B output, 320px controls (44px buttons, no overflow), language navigation/reset and desktop1024 layout passed. An earlier 55-test run passed tests but failed the actual source/build checks; that failure was retained and fixed, not counted as a passing release. Production metadata and headers are exact-source checked; the live release subsequently passed the checks below.
+
+## Final live release
+
+Public source: https://github.com/KYStr/glossquote-labs-text-workbench (PUBLIC), functional commit 6f994d40c2e28f64df3f5473e158277146b68b97; the final documentation-only commit does not change the deployed assets.
+
+Live pages: https://text.glossquote.com/index.html and https://text.glossquote.com/en/index.html. Worker version 513bcb01-1f0e-45d3-b9cc-0603179997c9. Primary verified 12 public assets byte-for-byte and 34 real HTTPS GET/HEAD, MIME, security header, canonical/hreflang, robots/sitemap, redirects and404 checks. An immediate post-deploy check initially returned Cloudflare500 “Script not found”; after reachability recovered, the unchanged release passed the complete check. No redeploy or verification weakening was used to hide that failure.
+
+Native live IAB Chinese and English Worker results passed. Both live homepage catalogs now list five tools; actual navigation to and from matching-language text pages passed. Homepage source 8635f003601514f824a348344620469b78545790 is PUBLIC and remote-verified, Worker 8f481496-07e2-4284-9457-6ad9b5be1195, with20 HTTPS checks and5 exact public assets.
+
+The primary reviewed all implementation/helper changes, independently ran56 tool tests and12 homepage tests, and checked builds. No credential values were printed or published; only the exact user-authorized token file was passed to an isolated CLI child. Final Windows environment closure is recorded in the private workspace evidence. Manual NOT_RUN items above remain pending, rather than being counted as passes.

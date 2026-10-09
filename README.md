@@ -22,7 +22,7 @@ node scripts/build.mjs --production --cloudflare --site-url https://text.glossqu
 node scripts/check.mjs --production --cloudflare --site-url https://text.glossquote.com/
 ```
 
-The approved target is https://text.glossquote.com/. See [actual release and verification status](docs/VERIFICATION.md); configuration alone does not establish a live release.
+Live: [繁體中文](https://text.glossquote.com/index.html) · [English](https://text.glossquote.com/en/index.html) · [All GlossQuote tools](https://glossquote.com/index.html). See [verification and manual pending items](docs/VERIFICATION.md).
 
 ## Behavior and limits
 
