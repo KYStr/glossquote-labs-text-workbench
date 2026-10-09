@@ -1,0 +1,33 @@
+{
+  "name": "glossquote-text-workbench",
+  "compatibility_date": "2026-10-09",
+  "workers_dev": false,
+  "preview_urls": false,
+  "send_metrics": false,
+  "dependencies_instrumentation": {
+    "enabled": false
+  },
+  "build": {
+    "command": "node scripts/build.mjs --production --cloudflare --site-url https://text.glossquote.com/ && node scripts/check.mjs --production --cloudflare --site-url https://text.glossquote.com/",
+    "cwd": "."
+  },
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "route": {
+    "pattern": "text.glossquote.com",
+    "custom_domain": true
+  },
+  "observability": {
+    "enabled": false,
+    "logs": {
+      "enabled": false,
+      "invocation_logs": false
+    },
+    "traces": {
+      "enabled": false
+    }
+  }
+}

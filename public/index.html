@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; worker-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <title>文字整理與重複行清除｜GlossQuote-Labs</title>
+    <meta name="description" content="在瀏覽器內整理文字，移除空行與重複行，查看 Unicode 碼點、行數和 UTF-8 大小。原文保留供核對，支援複製與 UTF-8 下載。">
+    <link rel="alternate" hreflang="en" href="./en/index.html">
+    <link rel="alternate" hreflang="zh-Hant" href="./index.html">
+    <link rel="stylesheet" href="./styles/tokens.css">
+    <link rel="stylesheet" href="./styles/app.css">
+    <script type="module" src="./js/app.mjs"></script>
+  </head>
+  <body data-workbench="true">
+    <a class="skip-link" href="#main-content">跳至主要內容</a>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="brand" href="https://glossquote.com/index.html" aria-label="GlossQuote-Labs 首頁">
+          <span class="brand-mark" aria-hidden="true">G</span>
+          <span>GlossQuote-Labs</span>
+        </a>
+        <span class="header-divider" aria-hidden="true">/</span>
+        <span class="header-current">文字整理</span>
+        <nav class="language-switch" aria-label="語言">
+          <a href="./en/index.html" lang="en">English</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="page-intro" aria-labelledby="page-title">
+        <div class="page-intro__copy">
+          <h1 id="page-title">文字整理與行數統計</h1>
+          <p class="intro-copy">貼上文字並勾選要執行的逐行整理方式。原文會保留供核對，輸出換行統一為 LF。</p>
+        </div>
+      </section>
+
+      <p class="language-warning" id="language-warning">切換語言會開啟新頁面，不會帶入目前的原文或結果；請先複製或下載需要的內容。</p>
+
+      <p class="availability-note" id="availability">無法啟動文字整理。請確認已啟用 JavaScript，或改用支援本機處理功能的瀏覽器。</p>
+
+      <div class="workbench-grid">
+        <section class="panel source-panel" aria-labelledby="source-title">
+          <div class="panel-heading">
+            <h2 id="source-title">原始文字</h2>
+            <span class="panel-kicker">01 / 輸入</span>
+          </div>
+          <label class="field-label" for="source-text">貼上或輸入文字</label>
+          <textarea
+            id="source-text"
+            class="text-area source-area"
+            rows="14"
+            placeholder="貼上要整理的文字"
+            aria-describedby="source-help source-error"
+          ></textarea>
+          <p class="field-help" id="source-help">每次整理最多 200,000 個 UTF-16 單位及 256 KiB UTF-8 bytes；上限以原始文字計算。超過上限時請分段處理。</p>
+          <p class="field-error" id="source-error" hidden></p>
+
+          <div class="metrics-block" aria-labelledby="before-metrics-title">
+            <h3 class="metrics-title" id="before-metrics-title">原文統計</h3>
+            <dl class="metrics-grid">
+              <div class="metric">
+                <dt>碼點</dt>
+                <dd id="before-codepoints">0</dd>
+              </div>
+              <div class="metric">
+                <dt>行數</dt>
+                <dd id="before-lines">0</dd>
+              </div>
+              <div class="metric">
+                <dt>UTF-8 bytes</dt>
+                <dd id="before-bytes">0</dd>
+              </div>
+            </dl>
+            <p class="metrics-note">原文統計以 LF 換行計算。</p>
+          </div>
+        </section>
+
+        <fieldset class="panel options-panel">
+          <legend id="options-title">整理方式</legend>
+          <div class="options-list">
+            <label class="option-row" for="trim-ascii">
+              <input id="trim-ascii" name="trimAscii" type="checkbox">
+              <span class="option-copy">
+                <span class="option-label">移除每行首尾空格或 Tab</span>
+                <span class="option-help">只移除 ASCII 空格與 Tab；不改變大小寫或全形空白。</span>
+              </span>
+            </label>
+            <label class="option-row" for="drop-empty">
+              <input id="drop-empty" name="dropEmpty" type="checkbox">
+              <span class="option-copy">
+                <span class="option-label">移除空行</span>
+                <span class="option-help">只含空格或 Tab 的行會保留，除非也勾選「移除每行首尾空格或 Tab」。</span>
+              </span>
+            </label>
+            <label class="option-row" for="deduplicate">
+              <input id="deduplicate" name="deduplicate" type="checkbox">
+              <span class="option-copy">
+                <span class="option-label">移除重複行</span>
+                <span class="option-help">依整理後的文字精確比對，保留首次出現；Apple 與 apple 不同。</span>
+              </span>
+            </label>
+          </div>
+          <div class="action-row" role="group" aria-label="整理操作">
+            <button class="button button-primary" id="process-button" type="button" disabled>整理文字</button>
+            <button class="button button-secondary" id="cancel-button" type="button" hidden disabled>取消整理</button>
+            <button class="button button-quiet" id="clear-button" type="button" disabled>全部清除</button>
+          </div>
+        </fieldset>
+
+        <section class="status-panel" aria-labelledby="status-title">
+          <h2 id="status-title">工作狀態</h2>
+          <p id="work-status" role="status" aria-live="polite" aria-atomic="true">貼上文字，再選擇需要的整理方式。</p>
+        </section>
+
+        <section class="panel output-panel" aria-labelledby="output-title">
+          <div class="panel-heading">
+            <h2 id="output-title">整理結果</h2>
+            <span class="panel-kicker">02 / 核對</span>
+          </div>
+          <label class="field-label" for="output-text">唯讀結果</label>
+          <textarea
+            id="output-text"
+            class="text-area output-area"
+            rows="14"
+            readonly
+            aria-describedby="output-help"
+          ></textarea>
+          <p class="normalization-note" id="output-help">輸出換行統一為 LF。</p>
+
+          <div class="metrics-block output-metrics" aria-labelledby="after-metrics-title">
+            <h3 class="metrics-title" id="after-metrics-title">結果統計</h3>
+            <dl class="metrics-grid">
+              <div class="metric">
+                <dt>碼點</dt>
+                <dd id="after-codepoints">0</dd>
+              </div>
+              <div class="metric">
+                <dt>行數</dt>
+                <dd id="after-lines">0</dd>
+              </div>
+              <div class="metric">
+                <dt>UTF-8 bytes</dt>
+                <dd id="after-bytes">0</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="result-actions" role="group" aria-label="結果操作">
+            <button class="button button-secondary" id="copy-button" type="button" disabled>複製結果</button>
+            <button class="button button-quiet" id="download-button" type="button" disabled>下載文字</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="content-section usage-section" aria-labelledby="usage-title">
+        <h2 id="usage-title">使用方法</h2>
+        <ol class="usage-steps">
+          <li>
+            <h3>貼上原文</h3>
+            <p>輸入原文後查看原文統計。每次原文不得超過 200,000 個 UTF-16 單位，且 UTF-8 編碼不得超過 256 KiB；超過任一上限時請分段整理。</p>
+          </li>
+          <li>
+            <h3>選擇整理方式</h3>
+            <p>可移除每行首尾的空格或 Tab、空行及重複行。重複行按整理後內容精確比對，保留首次出現並區分大小寫。</p>
+          </li>
+          <li>
+            <h3>整理並核對</h3>
+            <p>按「整理文字」後確認結果與統計。輸出換行統一為 LF；處理中可取消，修改原文或選項會使舊結果失效。</p>
+          </li>
+          <li>
+            <h3>複製、下載或清除</h3>
+            <p>確認結果後可複製；只有非空結果可下載。按「全部清除」會清空本頁原文、結果、統計與選項。</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="content-section faq-section" aria-labelledby="faq-title">
+        <h2 id="faq-title">常見問題</h2>
+        <div class="faq-list">
+          <article class="faq-item">
+            <h3>會改寫我的內容嗎？</h3>
+            <p>只執行已勾選的逐行整理，並把換行統一為 LF；不會改寫字詞、大小寫或繁簡體。</p>
+          </article>
+          <article class="faq-item">
+            <h3>為什麼字數和文書軟體不同？</h3>
+            <p>這裡統計 Unicode 碼點，包含空白和換行。Emoji 或組合字可能由多個碼點組成；碼點數不是語言學上的詞數。</p>
+          </article>
+          <article class="faq-item">
+            <h3>重複行如何判斷？</h3>
+            <p>按所選整理方式處理後，再以行內容精確比對並保留第一筆。Apple 和 apple 不同；未移除首尾空格時，空格差異也會形成不同的行。</p>
+          </article>
+          <article class="faq-item">
+            <h3>離開頁面後文字會保留嗎？</h3>
+            <p>工具不主動保存文字，也不提供恢復歷史；請勿預期重新載入或離開後能由工具恢復。自行下載的檔案與剪貼簿由你的裝置管理。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-section privacy-section" aria-labelledby="privacy-title">
+        <h2 id="privacy-title">資料處理與清除</h2>
+        <p>文字在瀏覽器內整理，工具不主動保存原文或整理歷史。「全部清除」會清空本頁原文、結果、統計、選項與錯誤；不會刪除已下載的檔案，也不能清除裝置管理的剪貼簿。使用共用裝置時，請先確認下載檔案與剪貼簿內容，再清除頁面文字。</p>
+      </section>
+    </main>
+  </body>
+</html>

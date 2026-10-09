@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; worker-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <title>Text Cleaning and Duplicate Line Removal | GlossQuote-Labs</title>
+    <meta name="description" content="Clean text in your browser, remove blank and duplicate lines, and review Unicode code points, line counts, and UTF-8 size. Keep the source visible, then copy or download the result.">
+    <link rel="alternate" hreflang="zh-Hant" href="../index.html">
+    <link rel="alternate" hreflang="en" href="./index.html">
+    <link rel="stylesheet" href="../styles/tokens.css">
+    <link rel="stylesheet" href="../styles/app.css">
+    <script type="module" src="../js/app.mjs"></script>
+  </head>
+  <body data-workbench="true">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="brand" href="https://glossquote.com/en/index.html" aria-label="GlossQuote-Labs home">
+          <span class="brand-mark" aria-hidden="true">G</span>
+          <span>GlossQuote-Labs</span>
+        </a>
+        <span class="header-divider" aria-hidden="true">/</span>
+        <span class="header-current">Text cleaning</span>
+        <nav class="language-switch" aria-label="Language">
+          <a href="../index.html" lang="zh-Hant">繁體中文</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="page-intro" aria-labelledby="page-title">
+        <div class="page-intro__copy">
+          <h1 id="page-title">Text Cleaning and Line Counts</h1>
+          <p class="intro-copy">Paste text and choose which line-by-line changes to apply. The source stays visible for review, and output line breaks use LF.</p>
+        </div>
+      </section>
+
+      <p class="language-warning" id="language-warning">Switching languages opens a new page and does not transfer the current source text or result. Copy or download anything you need first.</p>
+
+      <p class="availability-note" id="availability">Text cleaning could not start. Check that JavaScript is enabled, or use a browser that supports local processing.</p>
+
+      <div class="workbench-grid">
+        <section class="panel source-panel" aria-labelledby="source-title">
+          <div class="panel-heading">
+            <h2 id="source-title">Source text</h2>
+            <span class="panel-kicker">01 / INPUT</span>
+          </div>
+          <label class="field-label" for="source-text">Paste or type text</label>
+          <textarea
+            id="source-text"
+            class="text-area source-area"
+            rows="14"
+            placeholder="Paste text to clean"
+            aria-describedby="source-help source-error"
+          ></textarea>
+          <p class="field-help" id="source-help">Each input must be no more than 200,000 UTF-16 code units and no more than 256 KiB in UTF-8. These limits apply before newline normalization. Split text that exceeds either limit.</p>
+          <p class="field-error" id="source-error" hidden></p>
+
+          <div class="metrics-block" aria-labelledby="before-metrics-title">
+            <h3 class="metrics-title" id="before-metrics-title">Source metrics</h3>
+            <dl class="metrics-grid">
+              <div class="metric">
+                <dt>Code points</dt>
+                <dd id="before-codepoints">0</dd>
+              </div>
+              <div class="metric">
+                <dt>Lines</dt>
+                <dd id="before-lines">0</dd>
+              </div>
+              <div class="metric">
+                <dt>UTF-8 bytes</dt>
+                <dd id="before-bytes">0</dd>
+              </div>
+            </dl>
+            <p class="metrics-note">Source metrics use LF-normalized text (CRLF and CR become LF).</p>
+          </div>
+        </section>
+
+        <fieldset class="panel options-panel">
+          <legend id="options-title">Cleaning options</legend>
+          <div class="options-list">
+            <label class="option-row" for="trim-ascii">
+              <input id="trim-ascii" name="trimAscii" type="checkbox">
+              <span class="option-copy">
+                <span class="option-label">Trim spaces or tabs at the start and end of each line</span>
+                <span class="option-help">Only ASCII spaces and tabs are removed. Letter case and fullwidth spaces are preserved.</span>
+              </span>
+            </label>
+            <label class="option-row" for="drop-empty">
+              <input id="drop-empty" name="dropEmpty" type="checkbox">
+              <span class="option-copy">
+                <span class="option-label">Remove empty lines</span>
+                <span class="option-help">Lines containing only spaces or tabs remain unless trimming is also selected.</span>
+              </span>
+            </label>
+            <label class="option-row" for="deduplicate">
+              <input id="deduplicate" name="deduplicate" type="checkbox">
+              <span class="option-copy">
+                <span class="option-label">Remove duplicate lines</span>
+                <span class="option-help">Compare exact cleaned line content and keep the first occurrence. Apple and apple are different.</span>
+              </span>
+            </label>
+          </div>
+          <div class="action-row" role="group" aria-label="Cleaning actions">
+            <button class="button button-primary" id="process-button" type="button" disabled>Clean text</button>
+            <button class="button button-secondary" id="cancel-button" type="button" hidden disabled>Cancel cleaning</button>
+            <button class="button button-quiet" id="clear-button" type="button" disabled>Clear all</button>
+          </div>
+        </fieldset>
+
+        <section class="status-panel" aria-labelledby="status-title">
+          <h2 id="status-title">Work status</h2>
+          <p id="work-status" role="status" aria-live="polite" aria-atomic="true">Paste text and choose how to clean it.</p>
+        </section>
+
+        <section class="panel output-panel" aria-labelledby="output-title">
+          <div class="panel-heading">
+            <h2 id="output-title">Cleaned result</h2>
+            <span class="panel-kicker">02 / REVIEW</span>
+          </div>
+          <label class="field-label" for="output-text">Read-only result</label>
+          <textarea
+            id="output-text"
+            class="text-area output-area"
+            rows="14"
+            readonly
+            aria-describedby="output-help"
+          ></textarea>
+          <p class="normalization-note" id="output-help">Output line breaks use LF.</p>
+
+          <div class="metrics-block output-metrics" aria-labelledby="after-metrics-title">
+            <h3 class="metrics-title" id="after-metrics-title">Result metrics</h3>
+            <dl class="metrics-grid">
+              <div class="metric">
+                <dt>Code points</dt>
+                <dd id="after-codepoints">0</dd>
+              </div>
+              <div class="metric">
+                <dt>Lines</dt>
+                <dd id="after-lines">0</dd>
+              </div>
+              <div class="metric">
+                <dt>UTF-8 bytes</dt>
+                <dd id="after-bytes">0</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="result-actions" role="group" aria-label="Result actions">
+            <button class="button button-secondary" id="copy-button" type="button" disabled>Copy result</button>
+            <button class="button button-quiet" id="download-button" type="button" disabled>Download text</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="content-section usage-section" aria-labelledby="usage-title">
+        <h2 id="usage-title">How to use this tool</h2>
+        <ol class="usage-steps">
+          <li>
+            <h3>Paste the source</h3>
+            <p>Paste text and review its metrics. Each input must be no more than 200,000 UTF-16 code units and no more than 256 KiB in UTF-8. Split the text if it exceeds either limit.</p>
+          </li>
+          <li>
+            <h3>Choose cleaning options</h3>
+            <p>Trim spaces or tabs at line edges, remove empty lines, or remove duplicate lines. Duplicate matching is exact after the selected cleanup, keeps the first line, and distinguishes letter case.</p>
+          </li>
+          <li>
+            <h3>Clean and review</h3>
+            <p>Select Clean text and check the result and metrics. Output line breaks use LF. You can cancel while processing; editing the source or options invalidates an earlier result.</p>
+          </li>
+          <li>
+            <h3>Copy, download, or clear</h3>
+            <p>Copy the result when it is ready. Only a non-empty result can be downloaded. Clear all removes the source, result, metrics, and selected options from this page.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="content-section faq-section" aria-labelledby="faq-title">
+        <h2 id="faq-title">Frequently asked questions</h2>
+        <div class="faq-list">
+          <article class="faq-item">
+            <h3>Will this rewrite my content?</h3>
+            <p>Only the selected line-by-line cleanup is applied, and line breaks are normalized to LF. Words, letter case, and writing system are not rewritten.</p>
+          </article>
+          <article class="faq-item">
+            <h3>Why does the character count differ from my word processor?</h3>
+            <p>This tool counts Unicode code points, including spaces and line breaks. An emoji or a character with combining marks can contain multiple code points. Code points are not the same as linguistic words.</p>
+          </article>
+          <article class="faq-item">
+            <h3>How are duplicate lines identified?</h3>
+            <p>Lines are compared exactly after the selected cleanup, and the first occurrence is kept. Apple and apple differ; if trimming is off, a difference in surrounding spaces also makes lines distinct.</p>
+          </article>
+          <article class="faq-item">
+            <h3>Will my text still be here after I leave?</h3>
+            <p>The tool does not actively save text or provide history to restore. Do not expect it to recover text after reloading or leaving. Downloaded files and clipboard contents are managed by your device.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-section privacy-section" aria-labelledby="privacy-title">
+        <h2 id="privacy-title">Data handling and clearing</h2>
+        <p>Text is cleaned in your browser, and the tool does not actively save source text or cleaning history. Clear all removes the source, result, metrics, options, and errors from this page. It does not delete downloaded files or clear your device-managed clipboard. On a shared device, check downloaded files and clipboard contents before clearing text from the page.</p>
+      </section>
+    </main>
+  </body>
+</html>
